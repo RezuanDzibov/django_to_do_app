@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% load sorl_thumbnail %}
+{% load task_app_tags_and_filters %}
+
+{% block title %}Task List{% endblock title %}
+
+{% block content %}
+    <br>
+    <br>
+    <br>
+    <div class="container page-todo bootstrap snippets bootdeys">
+        <div class="col-sm-7 tasks">
+            <div class="task-list">
+                <h1>Tasks</h1>
+                {% for task in task_list %}
+                    <div class="task high">
+                    <div class="desc">
+                        <div class="title"><a href="{{ task.get_absolute_url }}">{{ task.name }}</a></div>
+                        <p>{{ task.description}}</p>
+                    </div>
+                    <div class="time">
+                        <div>{{ task.created }}</div>
+                    </div>
+                    {% if task.image %}
+                        {% thumbnail task.image "300x300" as image %}
+                            <img src="{{ image.url }}">
+                        {% endthumbnail %}
+                    {% endif %}
+                </div>
+                {% endfor %}
+                {% if request.user|has_group:"Task manager" %}
+                    <div class="mb-3">
+                        <form method="post" action="{% url 'task_add' %}">
+                            {% csrf_token %}
+                            {{ task_form|crispy }}
+                            <br>
+                            <input class="btn btn-success" type="submit" value="add">
+                        </form>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+{% endblock content %}
