@@ -6,22 +6,24 @@
 {% endblock title %}
 
 {% block content %}
-    <h1>{{ task.name }}</h1>
-    <h5>{{ task.created }}</h5>
-    <p>{{ task.description }}</p>
-    {% if task.image %}
-        <img src="{{ task.image.url }}">
-    {% endif %}
-    {% if request.user.is_authenticated %}
-        <form method="post" action="{% url 'task_complete' task.slug %}">
-            {% csrf_token %}
+    <div class="container">
+        <h1>{{ task.name }}</h1>
+        <h5>{{ task.created }}</h5>
+        <p>{{ task.description }}</p>
+        {% if task.image %}
+            <img src="{{ task.image.url }}">
+        {% endif %}
+        {% if request.user.is_authenticated and not task.status %}
+            <form method="post" action="{% url 'task_complete' task.slug %}">
+                {% csrf_token %}
+                <br>
+                <input type="submit" class="btn btn-success" value="complete task">
+            </form>
+        {% endif %}
+        {% if request.user|has_group:"Task manager" %}
             <br>
-            <input type="submit" class="btn btn-success" value="complete task">
-        </form>
-    {% endif %}
-    {% if request.user|has_group:"Task manager" %}
-        <br>
-        <a class="btn btn-info" href="{% url 'task_edit' task.slug %}">Edit</a>
-        <a class="btn btn-danger" href="{% url 'task_delete' task.slug %}">Delete</a>    
-    {% endif %}
+            <a class="btn btn-info" href="{% url 'task_edit' task.slug %}">Edit</a>
+            <a class="btn btn-danger" href="{% url 'task_delete' task.slug %}">Delete</a>    
+        {% endif %}
+    </div>
 {% endblock content %}

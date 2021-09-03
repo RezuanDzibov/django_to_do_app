@@ -9,11 +9,6 @@ class TaskForm(forms.ModelForm):
         model = models.Task
         fields = ('name', 'description', 'image', 'status')
         widgets = {
-            'name': forms.TextInput(attrs={
-                'class': 'form-control',
-                'id': 'exampleFormControlInput1'
-            }),
-            'text_body': forms.Textarea(attrs={'class': 'form-control', 'id': 'exampleFormControlTextarea1'}),
             'image': forms.FileInput(attrs={
                 'class': 'form-control',
                 'type': 'file',

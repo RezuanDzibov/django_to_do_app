@@ -1,20 +1,16 @@
 from django.shortcuts import get_object_or_404, redirect
-from django.urls import reverse_lazy
+from django.urls.base import reverse_lazy
 from .models import Task
-from django.views.generic.list import ListView
-from django.views.generic.detail import DetailView
-from django.views.generic.edit import UpdateView, CreateView
-from django.views.generic.edit import DeleteView
-from django.views.generic.base import View
+from django.views import generic
 from django.utils import timezone
 from .forms import TaskForm, SignUpForm
 from django.contrib.auth.views import LoginView as BaseLoginView
 from django.contrib.messages.views import SuccessMessageMixin
 from .mixins import GroupRequiredMixin
-from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth import mixins
 
 
-class TaskListView(ListView):
+class TaskListView(generic.list.ListView):
     model = Task
     template_name = 'main_app_templates/task_list.html'
     context_object_name = 'task_list'
@@ -26,13 +22,13 @@ class TaskListView(ListView):
         return context
 
 
-class TaskDetailView(DetailView):
+class TaskDetailView(generic.detail.DetailView):
     model = Task
     template_name = 'main_app_templates/task_detail.html'
     context_object_name = 'task'
 
 
-class TaskUpdateView(LoginRequiredMixin, GroupRequiredMixin, UpdateView):
+class TaskUpdateView(mixins.LoginRequiredMixin, GroupRequiredMixin, generic.edit.UpdateView):
     model = Task
     template_name = 'main_app_templates/task_action.html'
     context_object_name = 'task'
@@ -41,7 +37,7 @@ class TaskUpdateView(LoginRequiredMixin, GroupRequiredMixin, UpdateView):
     
 
 
-class TaskDeleteView(LoginRequiredMixin, GroupRequiredMixin, DeleteView):
+class TaskDeleteView(mixins.LoginRequiredMixin, GroupRequiredMixin, generic.edit.DeleteView):
     model = Task
     success_url = reverse_lazy('task_list')
     context_object_name = 'task'
@@ -49,18 +45,21 @@ class TaskDeleteView(LoginRequiredMixin, GroupRequiredMixin, DeleteView):
     group_required = ('task_manager')
 
 
-class AddTask(LoginRequiredMixin, GroupRequiredMixin, View):
-    group_required = ('task_manager')
+class AddTask(GroupRequiredMixin, generic.base.View):
+    group_required = ('Task manager',)
     def post(self, request):
         form = TaskForm(request.POST)
         if form.is_valid():
+            form.save(commit=False)
+            form.creator = request.user
             form.save()
         return redirect('task_list')
 
 
-class CompeteTask(LoginRequiredMixin, View):
+class CompeteTask(mixins.LoginRequiredMixin, generic.base.View):
     def post(self, request, task_slug):
         task = get_object_or_404(Task, slug=task_slug)
+        task.completor = request.user
         task.status = True
         task.completed = timezone.now()
         task.save()
@@ -76,7 +75,7 @@ class LoginView(BaseLoginView):
         return super().get(request, *args, **kwargs)
 
 
-class RegisterCreateView(SuccessMessageMixin, CreateView):
+class RegisterCreateView(SuccessMessageMixin, generic.edit.CreateView):
     form_class = SignUpForm
     success_url = reverse_lazy('login')
     template_name = 'account/register.html'
